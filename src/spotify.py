@@ -1,8 +1,6 @@
 # Importing libraries
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 import time
 import os
 import random
@@ -33,7 +31,7 @@ class SpotifyBot:
                 Option to enable displaying the GUI
         """
         self.username = username
-        self.password = os.getenv('spotify-password')
+        self.password = os.getenv('SPOTIFY_PASSWORD')
         self.useGUI = useGUI
         self.driver = None
     
@@ -44,23 +42,46 @@ class SpotifyBot:
         options = webdriver.ChromeOptions()
         if not self.useGUI:
             options.add_argument("--headless")  
-        options.add_argument("--no-sandbox")  # Recommended for server environments
-        options.add_argument("--disable-dev-shm-usage")  # Avoid issues in containerized environments
+        options.add_argument("--no-sandbox")  
+        options.add_argument("--disable-dev-shm-usage")  
+        options.add_argument("--no-first-run")
+        options.add_argument("--incognito")
+        options.add_argument("--start-maximized")
+        options.add_argument("--no-default-browser-check")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-popup-blocking")
         self.driver = webdriver.Chrome(options=options)
+    
+    def send_keys_slowly(self, element, text):
+        for char in text:
+            element.send_keys(char)
+            time.sleep(random.uniform(0.15, 0.4))
     
     def login(self):
         """
             Logs into Spotify using the provided username and password.
         """
         self.driver.get(r"https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fopen.spotify.com%2F")
-        time.sleep(2)  # Espera a que cargue la página
+        wait_duration = random.uniform(1, 4) 
+        time.sleep(wait_duration)  # Espera a que cargue la página
 
-        # Ingresar credenciales y hacer login
-        self.driver.find_element(By.ID, "login-username").send_keys(self.username)
-        self.driver.find_element(By.ID, "login-password").send_keys(self.password)
+        # Locating and filling username field
+        username_field = self.driver.find_element(By.ID, "login-username")
+        self.send_keys_slowly(username_field, self.username)
+        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        time.sleep(wait_duration)
+
+        # Locating and filling password field
+        password_field = self.driver.find_element(By.ID, "login-password")
+        self.send_keys_slowly(password_field, self.password)
+        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        time.sleep(wait_duration)
+
+        # Clicking button
         self.driver.find_element(By.ID, "login-button").click()
-
-        time.sleep(5)
+        wait_duration = random.uniform(1.5, 3)  # Tiempo de espera para emular comportamiento humano
+        time.sleep(wait_duration)
     
     def navigate_to_album(self, album_url):
         """
@@ -72,7 +93,9 @@ class SpotifyBot:
                 The URL of the album to navigate to.
         """
         self.driver.get(album_url)
-        time.sleep(2)
+        wait_duration = random.uniform(1.5, 3) # Adding a waiting time to emulate human behaviour
+        time.sleep(wait_duration)
+
     def play_album(self):
         """
         Locates and clicks the play button on the album page, forcing the click using JavaScript.
@@ -83,23 +106,23 @@ class SpotifyBot:
             play_button = self.driver.find_element(By.CSS_SELECTOR, 'button.j2s64Lz8y6VzBLB_V9Gm')
 
             # Scroll to the play button to ensure it's in view
-            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", play_button)
-            time.sleep(1)
+            wait_duration = random.uniform(2, 5) # Adding a waiting time to emulate human behaviour
+            time.sleep(wait_duration)
 
             # Force a click on the play button using JavaScript
             self.driver.execute_script("arguments[0].click();", play_button)
             print("Play button clicked using JavaScript.")
 
             # Simulate listening to the album with random pauses
-            album_duration = 1800  # Total duration to simulate (30 minutes)
+            album_duration = random.randint(1800, 1830)
             elapsed_time = 0
-            pause_probability_threshold = 166  # Probability threshold for pausing the playback (adjust as needed)
-
+            pause_probability_threshold = random.randint(133, 322)  # Probability threshold for pausing the playback (adjust as needed)
+            
             while elapsed_time < album_duration:
                 random_pause_chance = random.randint(1, 100000)
 
                 if random_pause_chance < pause_probability_threshold:
-                    pause_duration = random.uniform(1, 20)  # Random pause duration between 1 and 20 seconds
+                    pause_duration = random.uniform(1, 35)  # Random pause duration between 1 and 35 seconds
                     self.pause_song(pause_duration)
 
                 time.sleep(1)  # Wait for 1 second to simulate playback
@@ -119,10 +142,19 @@ class SpotifyBot:
         """
         try:
             # Simulate pausing the song (implement the actual pause logic here if needed)
+            overhead_pause = random.uniform(1.5, 2.5) 
+            time.sleep(overhead_pause)
             print(f"Pausing song for {duration:.2f} seconds.")
-            time.sleep(duration)  # Wait for the pause duration
 
-            # Simulate resuming the song (implement the actual resume logic here if needed)
+            # Clicking pause button
+            pause_button = self.driver.find_element(By.CSS_SELECTOR, 'button.j2s64Lz8y6VzBLB_V9Gm')
+            self.driver.execute_script("arguments[0].click();", pause_button)
+
+            # Waiting for the pause duration
+            time.sleep(duration) 
+
+            # Clicking resume button
+            self.driver.execute_script("arguments[0].click();", pause_button)
             print("Resuming song playback.")
 
         except Exception as e:
@@ -145,5 +177,5 @@ class SpotifyBot:
         self.close_browser()
 
 if __name__ == "__main__":
-    bot = SpotifyBot()
+    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True)
     bot.run()
