@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 import time
 import os
 import random
+from proxy_finder import ProxyFinder
 
 # Adding functionality
 class SpotifyBot:
@@ -186,5 +187,5 @@ class SpotifyBot:
         self.close_browser()
 
 if __name__ == "__main__":
-    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True, proxy="177.93.33.122:999")
+    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True, proxy="43.205.253.133:3128")
     bot.run()
