@@ -19,7 +19,7 @@ class SpotifyBot:
         driver : webdriver.Chrome
             Selenium WebDriver instance used to interact with the browser.
     """
-    def __init__(self, username:str, useGUI:bool = False):
+    def __init__(self, username:str, useGUI:bool = False, proxy:str=None, proxy_user:str=None, proxy_pass:str=None,):
         """
             Initializes the SpotifyBot with a username and retrieves the password from the environment.
             
@@ -29,21 +29,28 @@ class SpotifyBot:
                 The Spotify username or email address.
             useGUI : bool
                 Option to enable displaying the GUI
+            proxy : str
+                The proxy address in the format 'ip:port'.
+            proxy_user : str, optional
+                The username for proxy authentication (if required).
+            proxy_pass : str, optional
+                The password for proxy authentication (if required).
         """
         self.username = username
         self.password = os.getenv('SPOTIFY_PASSWORD')
         self.useGUI = useGUI
+        self.proxy_ip = proxy
         self.driver = None
     
     def setup_browser(self):
         """
-            Sets up the Selenium WebDriver with Chrome options and initializes the browser instance.
+        Sets up the Selenium WebDriver with Chrome options and initializes the browser instance.
         """
         options = webdriver.ChromeOptions()
         if not self.useGUI:
-            options.add_argument("--headless")  
-        options.add_argument("--no-sandbox")  
-        options.add_argument("--disable-dev-shm-usage")  
+            options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--no-first-run")
         options.add_argument("--incognito")
         options.add_argument("--start-maximized")
@@ -51,6 +58,8 @@ class SpotifyBot:
         options.add_argument("--disable-infobars")
         options.add_argument("--disable-notifications")
         options.add_argument("--disable-popup-blocking")
+        options.add_argument(f"--proxy-server={self.proxy_ip}")
+
         self.driver = webdriver.Chrome(options=options)
     
     def send_keys_slowly(self, element, text):
@@ -177,5 +186,5 @@ class SpotifyBot:
         self.close_browser()
 
 if __name__ == "__main__":
-    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True)
+    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True, proxy="177.93.33.122:999")
     bot.run()
