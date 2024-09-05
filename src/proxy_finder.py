@@ -1,4 +1,5 @@
 # Importing libraries
+import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -6,6 +7,7 @@ from selenium.webdriver.common.by import By
 import time
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.action_chains import ActionChains
+import pyautogui
 
 # Proxy finder functionality
 class ProxyFinder:
@@ -25,14 +27,27 @@ class ProxyFinder:
 
     def setup_browser(self):
         """Sets up the Chrome browser with Selenium."""
-        options = webdriver.ChromeOptions()
-        # options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--incognito")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1920,1080")
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = uc.Chrome(headless=False,use_subprocess=True)
+    
+    def handle_recaptcha(self, x, y):
+        """
+        Automates reCAPTCHA by clicking on known coordinates.
+        """
+        print("Detecting CAPTCHA...")
+        try:
+            # Esperar 5 segundos antes de hacer clic, puedes ajustar este tiempo
+            time.sleep(5)
+            
+            # Realizar clic en las coordenadas proporcionadas
+            print(f"Haciendo clic en las coordenadas X={x}, Y={y}")
+            pyautogui.click(x=x, y=y)
+            
+            # Esperar después de hacer clic, asegurando que se procese la interacción
+            time.sleep(1)
+            print("reCAPTCHA clic realizado.")
+
+        except Exception as e:
+            print(f"Error while solving reCAPTCHA: {str(e)}")
 
     def find_proxy(self):
         """
@@ -48,7 +63,12 @@ class ProxyFinder:
         # Select the option to show 500 proxies
         select_element = Select(self.driver.find_element(By.ID, "xpp"))
         select_element.select_by_value("5")
-        time.sleep(3)  # Wait for the table to reload
+        time.sleep(1)  # Wait for the table to reload
+
+        print(f"Assessing whether there is captcha in {self.driver.page_source}")
+        if "momento" in self.driver.page_source:
+            self.handle_recaptcha(x=307, y=407)
+            time.sleep(5)
 
         # Find all rows in the table
         rows = self.driver.find_elements(By.XPATH, "//table/tbody/tr[contains(@class, 'spy1x') or contains(@class, 'spy1xx')]")
@@ -67,7 +87,7 @@ class ProxyFinder:
                 return proxy_text
 
         print(f"No proxy found for {self.country}.")
-        self.close_browser()
+        # self.close_browser()
         return None
 
     def close_browser(self):

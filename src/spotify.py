@@ -5,6 +5,8 @@ import time
 import os
 import random
 from proxy_finder import ProxyFinder
+import pyautogui
+import yaml
 
 # Adding functionality
 class SpotifyBot:
@@ -20,7 +22,7 @@ class SpotifyBot:
         driver : webdriver.Chrome
             Selenium WebDriver instance used to interact with the browser.
     """
-    def __init__(self, username:str, useGUI:bool = False, proxy:str=None, proxy_user:str=None, proxy_pass:str=None,):
+    def __init__(self, username:str, useGUI:bool = False, proxy:str=None, proxy_username:str=None, proxy_password:str=None,):
         """
             Initializes the SpotifyBot with a username and retrieves the password from the environment.
             
@@ -41,6 +43,8 @@ class SpotifyBot:
         self.password = os.getenv('SPOTIFY_PASSWORD')
         self.useGUI = useGUI
         self.proxy_ip = proxy
+        self.proxy_username = proxy_username
+        self.proxy_password = proxy_password
         self.driver = None
     
     def setup_browser(self):
@@ -62,19 +66,46 @@ class SpotifyBot:
         options.add_argument(f"--proxy-server={self.proxy_ip}")
 
         self.driver = webdriver.Chrome(options=options)
+        
     
-    def send_keys_slowly(self, element, text):
-        for char in text:
-            element.send_keys(char)
-            time.sleep(random.uniform(0.15, 0.4))
+    def send_keys_slowly(self, element=None, text=None, last=False):
+        if element:
+            for char in text:
+                element.send_keys(char)
+                time.sleep(random.uniform(0.15, 0.4))
+        else:
+            # Usar pyautogui para enviar el texto en la posición actual del cursor
+            for char in text:
+                if char == '@':  # Detecta si es un @ y usa la combinación Shift + 2 en Mac
+                    pyautogui.keyDown('alt')  # Mantén presionada la tecla Option (Alt)
+                    pyautogui.press('2')       # Presiona la tecla 2
+                    pyautogui.keyUp('alt')
+                else:
+                    pyautogui.write(char)
+                time.sleep(random.uniform(0.15, 0.4))
+            
+            if last:
+                pyautogui.press('enter')
+            else:
+                pyautogui.press('tab')
+
     
     def login(self):
         """
             Logs into Spotify using the provided username and password.
         """
         self.driver.get(r"https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fopen.spotify.com%2F")
-        wait_duration = random.uniform(1, 4) 
+        wait_duration = random.uniform(50,60 ) 
         time.sleep(wait_duration)  # Espera a que cargue la página
+
+        # enter credentials
+        self.send_keys_slowly(text=self.proxy_username)
+        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        time.sleep(wait_duration)
+
+        self.send_keys_slowly(text=self.proxy_password, last=True)
+        wait_duration = random.uniform(5, 10)  # Tiempo de espera para emular comportamiento humano
+        time.sleep(wait_duration)
 
         # Locating and filling username field
         username_field = self.driver.find_element(By.ID, "login-username")
@@ -187,5 +218,23 @@ class SpotifyBot:
         self.close_browser()
 
 if __name__ == "__main__":
-    bot = SpotifyBot(username="andres.ramajo1995@gmx.com", useGUI=True, proxy="43.205.253.133:3128")
+
+
+    # Obtener la ruta del archivo YAML usando ruta relativa
+    yaml_file_path = os.path.join(os.path.dirname(__file__), '../config/accounts.yaml')
+
+    # Cargar el archivo YAML
+    with open(yaml_file_path, 'r') as file:
+        data = yaml.safe_load(file)
+
+    # Test cuenta 1:
+    username = data["accounts"][0]["username"]
+    country = data["accounts"][0]["country"]
+    proxy_ip = data["accounts"][0]["proxy"]
+    proxy_username = data["accounts"][0]["proxy_username"]
+    proxy_password = data["accounts"][0]["proxy_password"]
+
+    finder= ProxyFinder(country=country)
+    proxy = finder.find_proxy()
+    bot = SpotifyBot(username=username, useGUI=True, proxy=proxy_ip, proxy_username=proxy_username,proxy_password=proxy_password)
     bot.run()
