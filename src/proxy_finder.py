@@ -81,7 +81,7 @@ class ProxyFinder:
             if self.country.lower() in country_name.lower():
                 # Extract the proxy value (IP:Port)
                 proxy_element = row.find_element(By.XPATH, "td[1]")
-                proxy_text = proxy_element.text.split("<script")[0].strip()  # Ignore script in the IP field
+                proxy_text = proxy_element.text.split("<script")[0].strip() 
                 print(f"Proxy found for {self.country}: {proxy_text}")
                 self.close_browser()
                 return proxy_text

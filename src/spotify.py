@@ -95,16 +95,16 @@ class SpotifyBot:
             Logs into Spotify using the provided username and password.
         """
         self.driver.get(r"https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fopen.spotify.com%2F")
-        wait_duration = random.uniform(50,60 ) 
-        time.sleep(wait_duration)  # Espera a que cargue la página
+        wait_duration = random.uniform(2, 4) 
+        time.sleep(wait_duration)
 
         # enter credentials
         self.send_keys_slowly(text=self.proxy_username)
-        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        wait_duration = random.uniform(1.5, 5) 
         time.sleep(wait_duration)
 
         self.send_keys_slowly(text=self.proxy_password, last=True)
-        wait_duration = random.uniform(5, 10)  # Tiempo de espera para emular comportamiento humano
+        wait_duration = random.uniform(5, 10)  
         time.sleep(wait_duration)
 
         # Locating and filling username field
@@ -116,12 +116,12 @@ class SpotifyBot:
         # Locating and filling password field
         password_field = self.driver.find_element(By.ID, "login-password")
         self.send_keys_slowly(password_field, self.password)
-        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        wait_duration = random.uniform(1.5, 5) 
         time.sleep(wait_duration)
 
         # Clicking button
         self.driver.find_element(By.ID, "login-button").click()
-        wait_duration = random.uniform(1.5, 3)  # Tiempo de espera para emular comportamiento humano
+        wait_duration = random.uniform(1.5, 3)  
         time.sleep(wait_duration)
     
     def navigate_to_album(self, album_url):
@@ -134,7 +134,7 @@ class SpotifyBot:
                 The URL of the album to navigate to.
         """
         self.driver.get(album_url)
-        wait_duration = random.uniform(1.5, 3) # Adding a waiting time to emulate human behaviour
+        wait_duration = random.uniform(1.5, 3) 
         time.sleep(wait_duration)
 
     def play_album(self):
@@ -147,7 +147,7 @@ class SpotifyBot:
             play_button = self.driver.find_element(By.CSS_SELECTOR, 'button.j2s64Lz8y6VzBLB_V9Gm')
 
             # Scroll to the play button to ensure it's in view
-            wait_duration = random.uniform(2, 5) # Adding a waiting time to emulate human behaviour
+            wait_duration = random.uniform(2, 5) 
             time.sleep(wait_duration)
 
             # Force a click on the play button using JavaScript
