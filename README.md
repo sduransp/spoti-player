@@ -38,16 +38,14 @@ The bot uses **Selenium WebDriver** to simulate a browser, logs into Spotify, an
 
 	1.	Clone the repository:
 
-	```
 	git clone https://github.com/sduransp/spoti-player.git
-	```
 
 	2. Install dependencies - There are also conda dependencies
-	```
+
 	conda create --name <environment_name> 
 	conda activate <environment_name>
 	pip install -r requirements.txt
-	```
+
 
 
 ### Usage
