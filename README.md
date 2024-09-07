@@ -57,6 +57,7 @@ python run.py -n -p
 ```
 
 where:
+
 	•	n = number of different account listening simultenously
 	•	p = probability of listening the provided album
 
