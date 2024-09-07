@@ -38,7 +38,7 @@ The bot uses **Selenium WebDriver** to simulate a browser, logs into Spotify, an
 
 	1.	Clone the repository:
 
-	```bash
+	```
 	git clone https://github.com/sduransp/spoti-player.git
 	```
 
