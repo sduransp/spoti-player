@@ -2,7 +2,7 @@
 
 This project is an educational tool that automates the process of increasing the playback count of a specific Spotify album using multiple accounts and proxies. The bot is capable of logging in to Spotify using different accounts, navigating to the album page, and playing it using Selenium and a proxy to simulate unique user activity.
 
-![logo](https://static.vecteezy.com/system/resources/previews/006/642/202/original/spotify-icon-spotify-logo-spotify-symbol-logo-set-free-vector.jpg)
+<img src="https://static.vecteezy.com/system/resources/previews/006/642/202/original/spotify-icon-spotify-logo-spotify-symbol-logo-set-free-vector.jpg" alt="logo" style="width:100%; height:auto; object-fit:cover; object-position:center; max-height:300px;" />
 
 🚨 **Disclaimer:** This project is strictly for educational purposes and to explore automation techniques. It should not be used for unethical purposes, such as artificially inflating Spotify streams or violating Spotify’s Terms of Service.
 
