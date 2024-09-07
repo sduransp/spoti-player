@@ -61,10 +61,9 @@ where:
 	•	n = number of different account listening simultenously
 	•	p = probability of listening the provided album
 
-```
-There is a probability of listening a different album from a random list, so it intends to mimic human behaviours.
-Not always selecting the same album
-```
+*There is a probability of listening a different album from a random list, so it intends to mimic human behaviours.
+Not always selecting the same album*
+
 
 ### Configuration
 
