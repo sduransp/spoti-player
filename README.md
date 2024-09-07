@@ -2,6 +2,8 @@
 
 This project is an educational tool that automates the process of increasing the playback count of a specific Spotify album using multiple accounts and proxies. The bot is capable of logging in to Spotify using different accounts, navigating to the album page, and playing it using Selenium and a proxy to simulate unique user activity.
 
+![logo](https://i0.wp.com/musically.com/wp-content/uploads/2023/05/spotify-logo.jpg?fit=1200%2C762&ssl=1)
+
 🚨 **Disclaimer:** This project is strictly for educational purposes and to explore automation techniques. It should not be used for unethical purposes, such as artificially inflating Spotify streams or violating Spotify’s Terms of Service.
 
 ### Features
