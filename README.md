@@ -18,11 +18,11 @@ The bot uses **Selenium WebDriver** to simulate a browser, logs into Spotify, an
 
 ### Bot Workflow:
 
-	1.	**Account Authentication:** Logs into Spotify using credentials loaded from a YAML file.
-	2.	**Proxy Assignment:** Each account operates under a different proxy IP to appear as a separate user.
-	3.	**Album Navigation:** The bot automatically navigates to the specified Spotify album URL.
-	4.	**Simulate Listening:** It clicks the “Play” button and simulates listening by keeping the album playing for a randomized duration.
-	5.	**Human-like Interaction:** Includes random pauses and resume actions to mimic real users.
+	1.	Account Authentication: Logs into Spotify using credentials loaded from a YAML file.
+	2.	Proxy Assignment: Each account operates under a different proxy IP to appear as a separate user.
+	3.	Album Navigation: The bot automatically navigates to the specified Spotify album URL.
+	4.	Simulate Listening: It clicks the “Play” button and simulates listening by keeping the album playing for a randomized duration.
+	5.	Human-like Interaction: Includes random pauses and resume actions to mimic real users.
 
 ### Requirements
 
