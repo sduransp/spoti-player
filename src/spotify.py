@@ -46,6 +46,30 @@ class SpotifyBot:
         self.proxy_username = proxy_username
         self.proxy_password = proxy_password
         self.driver = None
+        self.album_file = os.path.join(os.path.dirname(__file__), '../config/albums.yaml')
+        self.primary_album = None
+        self.alternate_albums = []
+
+        self.load_albums()
+
+    def load_albums(self):
+        """
+        Loads the album URLs from a YAML file.
+        """
+        with open(self.album_file, 'r') as file:
+            data = yaml.safe_load(file)
+            self.primary_album = data['albums']['primary']
+            self.alternate_albums = data['albums']['alternates']
+    
+    def choose_album(self):
+        """
+        Chooses an album to navigate to based on an 80% probability of selecting the primary album,
+        and 20% for an alternate album.
+        """
+        if random.random() < 0.8:  
+            return self.primary_album
+        else:  
+            return random.choice(self.alternate_albums)
     
     def setup_browser(self):
         """
@@ -207,13 +231,15 @@ class SpotifyBot:
             Closes the browser instance.
         """
         self.driver.quit()
+        
     def run(self):
         """
             Runs the complete bot process: setting up the browser, logging in, navigating to an album, playing it, and closing the browser.
         """
         self.setup_browser()
         self.login()
-        self.navigate_to_album(r"https://open.spotify.com/album/4lJ0vy0SIlMxHYofabpjng")
+        album_url = self.choose_album()
+        self.navigate_to_album(album_url)
         self.play_album()
         self.close_browser()
 
