@@ -119,33 +119,33 @@ class SpotifyBot:
             Logs into Spotify using the provided username and password.
         """
         self.driver.get(r"https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fopen.spotify.com%2F")
-        wait_duration = random.uniform(2, 4) 
+        wait_duration = random.uniform(1, 2) 
         time.sleep(wait_duration)
 
         # enter credentials
         self.send_keys_slowly(text=self.proxy_username)
-        wait_duration = random.uniform(1.5, 5) 
+        wait_duration = random.uniform(1.5, 3) 
         time.sleep(wait_duration)
 
         self.send_keys_slowly(text=self.proxy_password, last=True)
-        wait_duration = random.uniform(5, 10)  
+        wait_duration = random.uniform(1, 3)  
         time.sleep(wait_duration)
 
         # Locating and filling username field
         username_field = self.driver.find_element(By.ID, "login-username")
         self.send_keys_slowly(username_field, self.username)
-        wait_duration = random.uniform(1.5, 5)  # Tiempo de espera para emular comportamiento humano
+        wait_duration = random.uniform(1.5, 3)  # Tiempo de espera para emular comportamiento humano
         time.sleep(wait_duration)
 
         # Locating and filling password field
         password_field = self.driver.find_element(By.ID, "login-password")
         self.send_keys_slowly(password_field, self.password)
-        wait_duration = random.uniform(1.5, 5) 
+        wait_duration = random.uniform(1.5, 3) 
         time.sleep(wait_duration)
 
         # Clicking button
         self.driver.find_element(By.ID, "login-button").click()
-        wait_duration = random.uniform(1.5, 3)  
+        wait_duration = random.uniform(1.5, 2)  
         time.sleep(wait_duration)
     
     def navigate_to_album(self, album_url):
@@ -158,8 +158,18 @@ class SpotifyBot:
                 The URL of the album to navigate to.
         """
         self.driver.get(album_url)
-        wait_duration = random.uniform(1.5, 3) 
+        wait_duration = random.uniform(1.5, 2.2) 
         time.sleep(wait_duration)
+    
+    def get_mouse_position(self):
+        try:
+            while True:
+                
+                x, y = pyautogui.position()
+                print(f"Posición del ratón: X={x} Y={y}", end="\r")  
+                time.sleep(0.1)  
+        except KeyboardInterrupt:
+            print("\nFinalizado.")
 
     def play_album(self):
         """
@@ -171,7 +181,7 @@ class SpotifyBot:
             play_button = self.driver.find_element(By.CSS_SELECTOR, 'button.j2s64Lz8y6VzBLB_V9Gm')
 
             # Scroll to the play button to ensure it's in view
-            wait_duration = random.uniform(2, 5) 
+            wait_duration = random.uniform(1.2, 3) 
             time.sleep(wait_duration)
 
             # Force a click on the play button using JavaScript
@@ -183,15 +193,80 @@ class SpotifyBot:
             elapsed_time = 0
             pause_probability_threshold = random.randint(133, 322)  # Probability threshold for pausing the playback (adjust as needed)
             
-            while elapsed_time < album_duration:
-                random_pause_chance = random.randint(1, 100000)
+            # Flags to ensure the blocks are entered only once per 10-second cycle
+            checked_play_pause = False
+            clicked_next_previous = False
 
+            pyautogui.click(x=961, y=429)
+            wait_duration = random.uniform(0.5, 0.9) 
+            time.sleep(wait_duration)
+            pyautogui.click(x=1136, y=824)
+            wait_duration = random.uniform(0.5, 0.9) 
+            time.sleep(wait_duration)
+            pyautogui.click(x=106, y=811)
+            wait_duration = random.uniform(0.5, 0.9) 
+            time.sleep(wait_duration)
+        
+
+
+            while elapsed_time < album_duration:
+                # Beginning of the loop - grabbing the time
+                start_time = time.time() 
+                # Estimating the probability of pausing
+                random_pause_chance = random.randint(1, 100000)
+                # checking whether it is time to pause
                 if random_pause_chance < pause_probability_threshold:
                     pause_duration = random.uniform(1, 35)  # Random pause duration between 1 and 35 seconds
                     self.pause_song(pause_duration)
+                
+                # Check if play/pause button is "Pause" (indicating music is playing) between seconds 3 and 5
+                if 3 <= elapsed_time % 10 <= 5 and not checked_play_pause:
+                    try:
+                        play_pause_button = self.driver.find_element(By.CSS_SELECTOR, 'button[data-testid="control-button-playpause"]')
+                        play_pause_status = play_pause_button.get_attribute("aria-label")
 
-                time.sleep(1)  # Wait for 1 second to simulate playback
-                elapsed_time += 1
+                        if play_pause_status == "Play":
+                            print("Music is paused, clicking play.")
+                            play_pause_button.click()
+                        else:
+                            print("Music is playing.")
+
+                        checked_play_pause = True  # Ensure this block is entered only once per cycle
+
+                    except Exception as e:
+                        print(f"Could not find play/pause button: {e}")
+
+                # Press "Next" button between seconds 6 and 8
+                if 6 <= elapsed_time % 10 <= 8 and not clicked_next_previous:
+                    try:
+                        next_button = self.driver.find_element(By.CSS_SELECTOR, 'button[data-testid="control-button-skip-forward"]')
+                        next_button.click()
+                        print("Clicked 'Next' button.")
+                        
+                        # Wait between 0.8 and 1.5 seconds
+                        wait_duration = random.uniform(0.8, 1.5)
+                        time.sleep(wait_duration)
+
+                        # Press "Previous" button after pressing "Next"
+                        previous_button = self.driver.find_element(By.CSS_SELECTOR, 'button[data-testid="control-button-skip-back"]')
+                        previous_button.click()
+                        print("Clicked 'Previous' button.")
+
+                        clicked_next_previous = True  # Ensure this block is entered only once per cycle
+
+                    except Exception as e:
+                        print(f"Error clicking next/previous button: {e}")
+
+                # Calculate the actual time spent in the loop
+                loop_duration = time.time() - start_time
+
+                # If loop duration is less than 1 second, wait the remainder of the time to make it exactly 1 second
+                if loop_duration < 1:
+                    time.sleep(1 - loop_duration)
+                    elapsed_time += 1
+                else:
+                    # If the loop took more than 1 second, just add the actual time spent
+                    elapsed_time += loop_duration
 
         except Exception as e:
             print(f"Could not find or click the play button: {e}")

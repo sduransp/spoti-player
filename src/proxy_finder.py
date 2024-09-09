@@ -36,7 +36,7 @@ class ProxyFinder:
         print("Detecting CAPTCHA...")
         try:
             # Esperar 5 segundos antes de hacer clic, puedes ajustar este tiempo
-            time.sleep(5)
+            time.sleep(2)
             
             # Realizar clic en las coordenadas proporcionadas
             print(f"Haciendo clic en las coordenadas X={x}, Y={y}")
@@ -68,7 +68,7 @@ class ProxyFinder:
         print(f"Assessing whether there is captcha in {self.driver.page_source}")
         if "momento" in self.driver.page_source:
             self.handle_recaptcha(x=307, y=407)
-            time.sleep(5)
+            time.sleep(3)
 
         # Find all rows in the table
         rows = self.driver.find_elements(By.XPATH, "//table/tbody/tr[contains(@class, 'spy1x') or contains(@class, 'spy1xx')]")
