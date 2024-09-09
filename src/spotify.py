@@ -4,7 +4,6 @@ from selenium.webdriver.common.by import By
 import time
 import os
 import random
-from proxy_finder import ProxyFinder
 import pyautogui
 import yaml
 
@@ -206,8 +205,6 @@ class SpotifyBot:
             pyautogui.click(x=106, y=811)
             wait_duration = random.uniform(0.5, 0.9) 
             time.sleep(wait_duration)
-        
-
 
             while elapsed_time < album_duration:
                 # Beginning of the loop - grabbing the time
@@ -317,25 +314,3 @@ class SpotifyBot:
         self.navigate_to_album(album_url)
         self.play_album()
         self.close_browser()
-
-if __name__ == "__main__":
-
-
-    # Obtener la ruta del archivo YAML usando ruta relativa
-    yaml_file_path = os.path.join(os.path.dirname(__file__), '../config/accounts.yaml')
-
-    # Cargar el archivo YAML
-    with open(yaml_file_path, 'r') as file:
-        data = yaml.safe_load(file)
-
-    # Test cuenta 1:
-    username = data["accounts"][0]["username"]
-    country = data["accounts"][0]["country"]
-    proxy_ip = data["accounts"][0]["proxy"]
-    proxy_username = data["accounts"][0]["proxy_username"]
-    proxy_password = data["accounts"][0]["proxy_password"]
-
-    finder= ProxyFinder(country=country)
-    proxy = finder.find_proxy()
-    bot = SpotifyBot(username=username, useGUI=True, proxy=proxy_ip, proxy_username=proxy_username,proxy_password=proxy_password)
-    bot.run()
