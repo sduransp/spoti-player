@@ -55,13 +55,12 @@ The bot uses **Selenium WebDriver** to simulate a browser, logs into Spotify, an
 To run the bot with the specified Spotify account and proxy settings from your YAML configuration:
 
 ```bash
-python run.py -n -p
+python run.py --threads
 ```
 
 where:
 
-	•	n = number of different account listening simultenously
-	•	p = probability of listening the provided album
+	•	threads = number of different account listening simultenously
 
 *There is a probability of listening a different album from a random list, so it intends to mimic human behaviours.
 Not always selecting the same album*
