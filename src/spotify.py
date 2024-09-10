@@ -21,7 +21,7 @@ class SpotifyBot:
         driver : webdriver.Chrome
             Selenium WebDriver instance used to interact with the browser.
     """
-    def __init__(self, username:str, useGUI:bool = False, proxy:str=None, proxy_username:str=None, proxy_password:str=None,):
+    def __init__(self, username:str, useGUI:bool = False,orchestrator_event=None, window_ready_event=None, proxy:str=None, proxy_username:str=None, proxy_password:str=None,):
         """
             Initializes the SpotifyBot with a username and retrieves the password from the environment.
             
@@ -44,6 +44,8 @@ class SpotifyBot:
         self.proxy_ip = proxy
         self.proxy_username = proxy_username
         self.proxy_password = proxy_password
+        self.orchestrator_event = orchestrator_event
+        self.window_ready_event = window_ready_event
         self.driver = None
         self.album_file = os.path.join(os.path.dirname(__file__), '../config/albums.yaml')
         self.primary_album = None
@@ -213,8 +215,11 @@ class SpotifyBot:
                 random_pause_chance = random.randint(1, 100000)
                 # checking whether it is time to pause
                 if random_pause_chance < pause_probability_threshold:
+                    self.orchestrator_event.set()
+                    self.window_ready_event.wait()  # Wait for orchestrator to signal it's ready
                     pause_duration = random.uniform(1, 35)  # Random pause duration between 1 and 35 seconds
                     self.pause_song(pause_duration)
+                    self.window_ready_event.clear()
                 
                 # Check if play/pause button is "Pause" (indicating music is playing) between seconds 3 and 5
                 if 3 <= elapsed_time % 10 <= 5 and not checked_play_pause:

@@ -6,7 +6,8 @@ from datetime import datetime
 import pytz
 import os
 import random
-from src.spotify import SpotifyBot  # Ensure this file is in your PYTHONPATH
+from src.spotify import SpotifyBot  #
+import pyautogui
 
 # SETTING GLOBAL VARIABLES
 # ------------------------
@@ -14,6 +15,8 @@ from src.spotify import SpotifyBot  # Ensure this file is in your PYTHONPATH
 used_accounts_today = set()
 # Track the current day to reset account usage
 current_day = datetime.now().date()
+# a windows handler
+window_handles = {}
 
 def load_accounts(yaml_file_path=None):
     """
@@ -68,14 +71,14 @@ def filter_accounts_by_time(accounts):
             local_time = datetime.now(timezone).time()
 
             # Allowed usage time: 10:00 AM - 11:00 PM
-            if datetime.strptime('10:00', '%H:%M').time() <= local_time <= datetime.strptime('23:00', '%H:%M').time():
+            if datetime.strptime('04:00', '%H:%M').time() <= local_time <= datetime.strptime('23:00', '%H:%M').time():
                 valid_accounts.append(account)
         except Exception as e:
             print(f"Error processing account {username} in {city}, {country}: {e}")
     
     return valid_accounts
 
-def run_spotify_bot(account):
+def run_spotify_bot(account, orchestrator_event, window_ready_event):
     """
     Executes the Spotify bot for a given account.
 
@@ -93,12 +96,28 @@ def run_spotify_bot(account):
         useGUI=True,
         proxy=proxy_ip,
         proxy_username=proxy_username,
-        proxy_password=proxy_password
+        proxy_password=proxy_password,
+        orchestrator_event=orchestrator_event, 
+        window_ready_event=window_ready_event
     )
     bot.run()
 
     # Mark the account as used for today
     used_accounts_today.add(username)
+
+def orchestrate_window_management(orchestrator_event, window_ready_event):
+    """Orchestrator manages which window should be active based on signals from bots."""
+    while True:
+        orchestrator_event.wait()  # Wait for a bot to request window focus
+        print("Orchestrator received focus request.")
+        
+        for username, handle in window_handles.items():
+            print(f"Switching to window for {username}")
+            pyautogui.hotkey('alt', 'tab')  # Example of switching windows (can be customized for window handles)
+            time.sleep(2)  # Ensure window has focus
+            window_ready_event.set()  # Signal the bot it can proceed
+
+        orchestrator_event.clear()
 
 def manage_threads(yaml_file_path, n_threads):
     """
@@ -113,6 +132,13 @@ def manage_threads(yaml_file_path, n_threads):
     accounts = load_accounts(yaml_file_path)
     threads = []
 
+    orchestrator_event = threading.Event()
+    window_ready_event = threading.Event()
+
+    # Start the orchestrator thread to manage window switching
+    orchestrator_thread = threading.Thread(target=orchestrate_window_management, args=(orchestrator_event, window_ready_event))
+    orchestrator_thread.start()
+
     while True:
         # Filter accounts based on time and usage
         valid_accounts = filter_accounts_by_time(accounts)
@@ -120,10 +146,12 @@ def manage_threads(yaml_file_path, n_threads):
         # Launch threads until N active threads are reached
         while len(threads) < n_threads and valid_accounts:
             account = valid_accounts.pop(0)
-            thread = threading.Thread(target=run_spotify_bot, args=(account,))
+            thread = threading.Thread(target=run_spotify_bot, args=(account, orchestrator_event, window_ready_event))
             threads.append(thread)
-            thread.start()
+            threads[-1].start()
             print(f"Launching bot for account: {account['username']}")
+            wait_duration = random.uniform(60, 120)
+            time.sleep(wait_duration)
 
         # Check the status of existing threads
         for thread in threads:
