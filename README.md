@@ -55,7 +55,7 @@ The bot uses **Selenium WebDriver** to simulate a browser, logs into Spotify, an
 To run the bot with the specified Spotify account and proxy settings from your YAML configuration:
 
 ```bash
-python run.py --threads
+python run.py --threads 3
 ```
 
 where:
@@ -69,6 +69,22 @@ Not always selecting the same album*
 ### Configuration
 
 Edit the config/accounts.yaml file to manage your Spotify account information and proxy details.
+
+```yaml
+accounts:
+  - username: ***
+    country: ***
+    city: ***
+    proxy: ***
+    proxy_username: ***
+    proxy_password: ***
+  - username: ***
+    country: ***
+    city: ***
+    proxy: ***
+    proxy_username: ***
+    proxy_password: ***
+```
 
 ### Important Notes
 

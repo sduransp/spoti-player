@@ -21,7 +21,7 @@ class SpotifyBot:
         driver : webdriver.Chrome
             Selenium WebDriver instance used to interact with the browser.
     """
-    def __init__(self, username:str, useGUI:bool = False,orchestrator_event=None, window_ready_event=None, proxy:str=None, proxy_username:str=None, proxy_password:str=None,):
+    def __init__(self, username:str, useGUI:bool = False, proxy:str=None, proxy_username:str=None, proxy_password:str=None,pause_lock=None, is_paused=None):
         """
             Initializes the SpotifyBot with a username and retrieves the password from the environment.
             
@@ -44,8 +44,8 @@ class SpotifyBot:
         self.proxy_ip = proxy
         self.proxy_username = proxy_username
         self.proxy_password = proxy_password
-        self.orchestrator_event = orchestrator_event
-        self.window_ready_event = window_ready_event
+        self.pause_lock = pause_lock  
+        self.is_paused = is_paused   
         self.driver = None
         self.album_file = os.path.join(os.path.dirname(__file__), '../config/albums.yaml')
         self.primary_album = None
@@ -101,9 +101,9 @@ class SpotifyBot:
         else:
             # Usar pyautogui para enviar el texto en la posición actual del cursor
             for char in text:
-                if char == '@':  # Detecta si es un @ y usa la combinación Shift + 2 en Mac
-                    pyautogui.keyDown('alt')  # Mantén presionada la tecla Option (Alt)
-                    pyautogui.press('2')       # Presiona la tecla 2
+                if char == '@':  
+                    pyautogui.keyDown('alt')
+                    pyautogui.press('2')    
                     pyautogui.keyUp('alt')
                 else:
                     pyautogui.write(char)
@@ -119,6 +119,7 @@ class SpotifyBot:
         """
             Logs into Spotify using the provided username and password.
         """
+        
         self.driver.get(r"https://accounts.spotify.com/en/login?continue=https%3A%2F%2Fopen.spotify.com%2F")
         wait_duration = random.uniform(1, 2) 
         time.sleep(wait_duration)
@@ -172,55 +173,67 @@ class SpotifyBot:
         except KeyboardInterrupt:
             print("\nFinalizado.")
 
-    def play_album(self):
+    def start_playback(self):
         """
         Locates and clicks the play button on the album page, forcing the click using JavaScript.
-        Then, it simulates listening to the album, randomly pausing and resuming the playback.
+        Prepares the initial playback setup.
         """
         try:
             # Locate the play button using its CSS selector
             play_button = self.driver.find_element(By.CSS_SELECTOR, 'button.j2s64Lz8y6VzBLB_V9Gm')
 
             # Scroll to the play button to ensure it's in view
-            wait_duration = random.uniform(1.2, 3) 
+            wait_duration = random.uniform(1.2, 3)
             time.sleep(wait_duration)
 
             # Force a click on the play button using JavaScript
             self.driver.execute_script("arguments[0].click();", play_button)
             print("Play button clicked using JavaScript.")
 
-            # Simulate listening to the album with random pauses
-            album_duration = random.randint(1800, 1830)
-            elapsed_time = 0
-            pause_probability_threshold = random.randint(133, 322)  # Probability threshold for pausing the playback (adjust as needed)
-            
-            # Flags to ensure the blocks are entered only once per 10-second cycle
-            checked_play_pause = False
-            clicked_next_previous = False
-
+            # Initial setup: clicking on the required areas using pyautogui
             pyautogui.click(x=961, y=429)
-            wait_duration = random.uniform(0.5, 0.9) 
+            wait_duration = random.uniform(0.5, 0.9)
             time.sleep(wait_duration)
             pyautogui.click(x=1136, y=824)
-            wait_duration = random.uniform(0.5, 0.9) 
+            wait_duration = random.uniform(0.5, 0.9)
             time.sleep(wait_duration)
             pyautogui.click(x=106, y=811)
-            wait_duration = random.uniform(0.5, 0.9) 
+            wait_duration = random.uniform(0.5, 0.9)
             time.sleep(wait_duration)
 
+            # Return album duration and pause probability threshold
+            album_duration = random.randint(1800, 1830)
+            pause_probability_threshold = random.randint(133, 322)  # Probability threshold for pausing the playback
+
+            return album_duration, pause_probability_threshold
+
+        except Exception as e:
+            print(f"Could not find or click the play button: {e}")
+    
+    def simulate_playback(self, album_duration, pause_probability_threshold):
+        """
+        Simulates listening to the album, randomly pausing and resuming the playback.
+        Includes the main playback loop.
+        """
+        elapsed_time = 0
+        checked_play_pause = False
+        clicked_next_previous = False
+
+        try:
             while elapsed_time < album_duration:
-                # Beginning of the loop - grabbing the time
-                start_time = time.time() 
+                start_time = time.time()
+
                 # Estimating the probability of pausing
                 random_pause_chance = random.randint(1, 100000)
-                # checking whether it is time to pause
                 if random_pause_chance < pause_probability_threshold:
-                    self.orchestrator_event.set()
-                    self.window_ready_event.wait()  # Wait for orchestrator to signal it's ready
-                    pause_duration = random.uniform(1, 35)  # Random pause duration between 1 and 35 seconds
-                    self.pause_song(pause_duration)
-                    self.window_ready_event.clear()
-                
+                    with self.pause_lock:
+                        if not self.is_paused:
+                            self.is_paused = True
+                            self.driver.execute_script("window.focus();")
+                            pause_duration = random.uniform(1, 35)
+                            self.pause_song(pause_duration)
+                            self.is_paused = False
+
                 # Check if play/pause button is "Pause" (indicating music is playing) between seconds 3 and 5
                 if 3 <= elapsed_time % 10 <= 5 and not checked_play_pause:
                     try:
@@ -244,12 +257,10 @@ class SpotifyBot:
                         next_button = self.driver.find_element(By.CSS_SELECTOR, 'button[data-testid="control-button-skip-forward"]')
                         next_button.click()
                         print("Clicked 'Next' button.")
-                        
-                        # Wait between 0.8 and 1.5 seconds
+
                         wait_duration = random.uniform(0.8, 1.5)
                         time.sleep(wait_duration)
 
-                        # Press "Previous" button after pressing "Next"
                         previous_button = self.driver.find_element(By.CSS_SELECTOR, 'button[data-testid="control-button-skip-back"]')
                         previous_button.click()
                         print("Clicked 'Previous' button.")
@@ -261,17 +272,14 @@ class SpotifyBot:
 
                 # Calculate the actual time spent in the loop
                 loop_duration = time.time() - start_time
-
-                # If loop duration is less than 1 second, wait the remainder of the time to make it exactly 1 second
                 if loop_duration < 1:
                     time.sleep(1 - loop_duration)
                     elapsed_time += 1
                 else:
-                    # If the loop took more than 1 second, just add the actual time spent
                     elapsed_time += loop_duration
 
         except Exception as e:
-            print(f"Could not find or click the play button: {e}")
+            print(f"Error during playback: {e}")
 
     def pause_song(self, duration):
         """
@@ -313,9 +321,25 @@ class SpotifyBot:
         """
             Runs the complete bot process: setting up the browser, logging in, navigating to an album, playing it, and closing the browser.
         """
-        self.setup_browser()
-        self.login()
-        album_url = self.choose_album()
-        self.navigate_to_album(album_url)
-        self.play_album()
+        while True:  
+            print(f"Trying to run account - paused lock: {self.is_paused}")
+            with self.pause_lock:
+                if not self.is_paused:
+                    self.is_paused = True 
+                    print(f"Lock activated: {self.is_paused}")
+                    self.setup_browser()
+                    print("Browser setup")
+                    self.login()
+                    print(f"Logged in")
+                    album_url = self.choose_album()
+                    print(f"Album selected: {album_url}")
+                    self.navigate_to_album(album_url)
+                    print(f"About to start playing album")
+                    album_duration, pause_probability_threshold = self.start_playback()
+                    break  
+                else:
+                    print("El bot está en pausa, esperando 15 segundos antes de reintentar...")
+            
+            time.sleep(15)
+        self.simulate_playback(album_duration, pause_probability_threshold)
         self.close_browser()
